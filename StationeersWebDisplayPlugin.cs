@@ -3,6 +3,7 @@ using System;
 using System.IO;
 using BepInEx;
 using HarmonyLib;
+using StationeersWebDisplay.Cef;
 using StationeersWebDisplay.Patches;
 
 namespace StationeersWebDisplay

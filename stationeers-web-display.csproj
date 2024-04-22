@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <Target Name="CheckEnvironmentVars">
     <Error Text="Please set the StationeersGameDir environment variable." Condition="'$(StationeersGameDir)' == ''" ContinueOnError="false" />
   </Target>
@@ -48,7 +48,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CefSharp.OffScreen" Version="123.0.60" />
+    <PackageReference Include="CefGlue.Common" Version="91.4472.31" />
   </ItemGroup>
 
   <ItemGroup>
@@ -86,5 +86,9 @@
       <HintPath>$(StationeersBinaries)/UnityEngine.UI.dll</HintPath>
       <Private>false</Private>
     </Reference>
+	  <Reference Include="UnityEngine.ImageConversionModule">
+		  <HintPath>$(StationeersBinaries)/UnityEngine.ImageConversionModule.dll</HintPath>
+		  <Private>False</Private>
+	  </Reference>
   </ItemGroup>
 </Project>
