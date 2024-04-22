@@ -21,86 +21,74 @@ namespace StationeersWebDisplay.Cef
 
             Logging.LogTrace($"Initializing CEF ");
 
-            Logging.LogTrace($"Starting CEF demo process");
-            Dispatcher.RunOnMainThread(async () =>
+            try
             {
-                try
+                Logging.LogTrace("Loading CEF");
+                CefRuntime.Load(StationeersWebDisplayPlugin.AssemblyDirectory);
+                Logging.LogTrace("CEF loaded");
+
+                var cefArgs = new CefMainArgs(new string[] { "mute-audio" });
+
+                var cefApp = new OffscreenCefApp();
+
+                // This is where the code path diverges for child processes.
+                if (CefRuntime.ExecuteProcess(cefArgs, cefApp, IntPtr.Zero) != -1)
+                    Logging.LogError("Could not start the CEF secondary process.");
+
+                Logging.LogTrace("Executed CEF process");
+
+                var cefSettings = new CefSettings
                 {
-                    Logging.LogTrace("Loading cef");
-                    CefRuntime.Load(StationeersWebDisplayPlugin.AssemblyDirectory);
-                    Logging.LogTrace("Cef loaded");
+                    BrowserSubprocessPath = Path.Combine(StationeersWebDisplayPlugin.AssemblyDirectory, "CefGlueBrowserProcess/Xilium.CefGlue.BrowserProcess.exe"),
+                    MultiThreadedMessageLoop = false,
+                    LogSeverity = CefLogSeverity.Verbose,
+                    LogFile = "cef.log",
+                    WindowlessRenderingEnabled = true,
+                    NoSandbox = true,
+                };
 
-                    var cefArgs = new CefMainArgs(new string[] { "mute-audio" });
-                    Logging.LogTrace("Main args created");
+                CefRuntime.Initialize(cefArgs, cefSettings, cefApp, IntPtr.Zero);
+                Logging.LogTrace("CEF runtime initialized");
 
-                    var cefApp = new OffscreenCefApp();
-                    Logging.LogTrace("App created");
+                var pump = new GameObject("CefMessagePump");
+                pump.transform.parent = StationeersWebDisplayPlugin.Instance.gameObject.transform;
+                pump.AddComponent<CefMessagePump>();
+                Logging.LogTrace("CEF Message pump started");
 
-                    // This is where the code path diverges for child processes.
-                    if (CefRuntime.ExecuteProcess(cefArgs, cefApp, IntPtr.Zero) != -1)
-                        Logging.LogError("Could not start the secondary process.");
+                Logging.LogTrace("Starting texture copy");
+            }
+            catch (Exception ex)
+            {
+                Logging.LogError($"Failed to initialize CEF: {ex.GetType().FullName}: {ex.Message}\n{ex.StackTrace}");
+            }
+        }
 
-                    Logging.LogTrace("Executed process");
+        public static OffscreenCefClient CreateClient(string url, Size windowSize)
+        {
+            if (!initialized)
+            {
+                throw new Exception("CefHost is not initialized.");
+            }
 
-                    var cefSettings = new CefSettings
-                    {
-                        BrowserSubprocessPath = Path.Combine(StationeersWebDisplayPlugin.AssemblyDirectory, "CefGlueBrowserProcess/Xilium.CefGlue.BrowserProcess.exe"),
-                        MultiThreadedMessageLoop = false,
-                        LogSeverity = CefLogSeverity.Verbose,
-                        LogFile = "cef.log",
-                        WindowlessRenderingEnabled = true,
-                        NoSandbox = true,
-                    };
+            var cefWindowInfo = CefWindowInfo.Create();
+            cefWindowInfo.SetAsWindowless(IntPtr.Zero, false);
 
-                    CefRuntime.Initialize(cefArgs, cefSettings, cefApp, IntPtr.Zero);
-                    Logging.LogTrace("CEF Initialized");
+            CefBrowserSettings cefBrowserSettings = new CefBrowserSettings()
+            {
+                BackgroundColor = new CefColor(0, 0, 0, 255),
+                JavaScript = CefState.Enabled,
+                JavaScriptAccessClipboard = CefState.Disabled,
+                JavaScriptCloseWindows = CefState.Disabled,
+                JavaScriptDomPaste = CefState.Disabled,
+                FileAccessFromFileUrls = CefState.Disabled,
+                Databases = CefState.Disabled,
+                LocalStorage = CefState.Disabled
+            };
 
-                    var cefWindowInfo = CefWindowInfo.Create();
-                    cefWindowInfo.SetAsWindowless(IntPtr.Zero, false);
-                    Logging.LogTrace("CEF windowless set");
+            var cefClient = new OffscreenCefClient(windowSize);
+            CefBrowserHost.CreateBrowser(cefWindowInfo, cefClient, cefBrowserSettings, url);
 
-                    CefBrowserSettings cefBrowserSettings = new CefBrowserSettings()
-                    {
-                        BackgroundColor = new CefColor(0, 0, 0, 255),
-                        JavaScript = CefState.Enabled,
-                        JavaScriptAccessClipboard = CefState.Disabled,
-                        JavaScriptCloseWindows = CefState.Disabled,
-                        JavaScriptDomPaste = CefState.Disabled,
-                        FileAccessFromFileUrls = CefState.Disabled,
-                        Databases = CefState.Disabled,
-                        LocalStorage = CefState.Disabled
-                    };
-
-                    var windowSize = new Size(1024, 768);
-
-                    var cefClient = new OffscreenCefClient(windowSize);
-                    Logging.LogTrace("Creating browser");
-                    CefBrowserHost.CreateBrowser(cefWindowInfo, cefClient, cefBrowserSettings, "https://www.google.com");
-                    Logging.LogTrace("Browser created");
-
-                    var pump = new GameObject("CefMessagePump");
-                    pump.transform.parent = StationeersWebDisplayPlugin.Instance.gameObject.transform;
-                    pump.AddComponent<CefMessagePump>();
-                    Logging.LogTrace("Cef Message pump started");
-
-                    await Task.Delay(3000);
-
-                    Logging.LogTrace("Starting texture copy");
-
-                    var renderTexture = new Texture2D(windowSize.Width, windowSize.Height, TextureFormat.BGRA32, false);
-                    cefClient.CopyToTexture(renderTexture);
-                    Logging.LogTrace("Copied to texture");
-
-                    var textureBytes = renderTexture.EncodeToPNG();
-                    File.WriteAllBytes(Path.Combine(StationeersWebDisplayPlugin.AssemblyDirectory, "test.png"), textureBytes);
-
-                    Logging.LogTrace("Written to file");
-                }
-                catch (Exception ex)
-                {
-                    Logging.LogError($"Failed to initialize CEF: {ex.GetType().FullName}: {ex.Message}\n{ex.StackTrace}");
-                }
-            });
+            return cefClient;
         }
 
         private class CefMessagePump : MonoBehaviour

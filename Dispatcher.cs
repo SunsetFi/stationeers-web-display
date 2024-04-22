@@ -50,8 +50,7 @@ namespace StationeersWebDisplay
             if (_instance == null)
             {
                 Logging.LogTrace("Creating new dispatcher instance.");
-                _instance = new GameObject("Dispatcher").AddComponent<Dispatcher>();
-                DontDestroyOnLoad(_instance.gameObject);
+                _instance = StationeersWebDisplayPlugin.Instance.gameObject.AddComponent<Dispatcher>();
             }
         }
 
