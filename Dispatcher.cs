@@ -37,7 +37,6 @@ namespace StationeersWebDisplay
             lock (_backlog)
             {
                 _backlog.Add(queueItem);
-                Logging.LogTrace($"Dispatcher now has {_backlog.Count} items");
                 _queued = true;
             }
 
@@ -66,14 +65,11 @@ namespace StationeersWebDisplay
                     _queued = false;
                 }
 
-                Logging.LogTrace($"Draining {_actions.Count} items from dispatcher");
-
                 foreach (var action in _actions)
                 {
                     try
                     {
                         var result = action.function();
-                        Logging.LogTrace($"Dispatcher itme completed successfully.");
                         action.completionSource.TrySetResult(result);
                     }
                     catch (Exception e)

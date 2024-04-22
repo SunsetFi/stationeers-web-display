@@ -1,8 +1,7 @@
 
 using System;
-using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
+using System.Linq;
 using Assets.Scripts.Objects;
 using BepInEx;
 using HarmonyLib;
@@ -16,11 +15,6 @@ namespace StationeersWebDisplay
     public class StationeersWebDisplayPlugin : BaseUnityPlugin
     {
         public static StationeersWebDisplayPlugin Instance;
-
-        private readonly Size browserSize = new Size(1024, 768);
-        private readonly Texture2D browserTexture = new Texture2D(1024, 768, TextureFormat.BGRA32, false);
-        private OffscreenCefClient browserClient;
-        private List<PictureFrame> hyjackedPictureFrames = new();
 
         public static string AssemblyDirectory
         {
@@ -45,11 +39,6 @@ namespace StationeersWebDisplay
             ApplyPatches();
 
             GameStartWatcher.GameStarted += (_, _) => this.StartDisplays();
-            PictureFrameAwakeWatcher.PictureFrameAwake += (_, e) =>
-            {
-                Logging.LogTrace("Found picture frame to hyjack");
-                this.hyjackedPictureFrames.Add(e.PictureFrame);
-            };
         }
 
         private void ApplyPatches()
@@ -64,25 +53,30 @@ namespace StationeersWebDisplay
             Logging.LogTrace("Starting displays");
             Dispatcher.Initialize();
             CefHost.Initialize();
-            // "https://cdn.svgator.com/images/2024/02/animated-geometric-background.svg"
-            var url = "https://www.youtube.com/embed/pE_RXUWw9ys?autoplay=1&mute=1";
-            this.browserClient = CefHost.CreateClient(url, this.browserSize);
+
+            foreach (var frame in Thing.AllThings.OfType<PictureFrame>())
+            {
+                HyjackFrame(frame);
+            }
+
+            // For testing.  We never unsubscribe from this so starting multiple games will break stuff.
+            PictureFrameAwakeWatcher.PictureFrameAwake += (_, e) => HyjackFrame(e.PictureFrame);
         }
 
-        void Update()
+        void HyjackFrame(PictureFrame frame)
         {
             try
             {
-                this.browserClient.CopyToTexture(this.browserTexture);
-                foreach (var frame in this.hyjackedPictureFrames)
-                {
-                    var material = Reflection.GetPrivateField<Material>(frame, "PictureImage");
-                    material.mainTexture = this.browserTexture;
-                }
+                var material = Reflection.GetPrivateField<Material>(frame, "PictureImage");
+                var display = frame.GetOrAddComponent<WebDisplayBehavior>();
+                //display.Bezel = new(0, 67);
+                display.RenderMaterial = material;
+
+                display.Url = "https://codepen.io/splotch/pen/qdEJeX"; // "https://www.youtube.com/embed/pE_RXUWw9ys?autoplay=1&mute=1";
             }
             catch(Exception ex)
             {
-                Logging.LogError($"Failed to set picture frame textures: {ex.GetType().FullName} {ex.Message} {ex.StackTrace}");
+                Logging.LogError($"Error hyjacking frame: {ex.GetType().FullName} {ex.Message} {ex.StackTrace}");
             }
         }
     }

@@ -54,8 +54,6 @@ namespace StationeersWebDisplay.Cef
                 pump.transform.parent = StationeersWebDisplayPlugin.Instance.gameObject.transform;
                 pump.AddComponent<CefMessagePump>();
                 Logging.LogTrace("CEF Message pump started");
-
-                Logging.LogTrace("Starting texture copy");
             }
             catch (Exception ex)
             {

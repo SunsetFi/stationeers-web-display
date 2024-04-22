@@ -11,16 +11,47 @@ namespace StationeersWebDisplay.Cef
     {
         private readonly DialogHandler _dialogHandler = new();
         private readonly DownloadHandler _downloadHandler = new();
-        private readonly LifeSpanHandler _lifespanHandler = new();
+        private readonly LifeSpanHandler _lifespanHandler;
         private readonly RenderHandler _renderHandler;
 
         private readonly object PixelLock = new object();
         private byte[] _pixelBuffer;
 
+        private CefBrowserHost _host;
+
+        private Vector2? _lastMousePos = null;
+
         public OffscreenCefClient(Size windowSize)
         {
             this._pixelBuffer = new byte[windowSize.Width * windowSize.Height * 4];
+            this._lifespanHandler = new(this);
             this._renderHandler = new(windowSize.Width, windowSize.Height, this);
+        }
+
+        private string _pendingUrl = null;
+        public string Url
+        {
+            get
+            {
+                if (this._host == null)
+                {
+                    return this._pendingUrl;
+                }
+
+                return this._host.GetBrowser().GetMainFrame().Url;
+            }
+
+            set
+            {
+                if (this._host == null)
+                {
+                    Logging.LogTrace("URL set before host is ready.  Setting to pending");
+                    this._pendingUrl = value;
+                    return;
+                }
+
+                this._host.GetBrowser().GetMainFrame().LoadUrl(value);
+            }
         }
 
         public void CopyToTexture(Texture2D pTexture)
@@ -30,6 +61,40 @@ namespace StationeersWebDisplay.Cef
                 pTexture.LoadRawTextureData(this._pixelBuffer);
                 pTexture.Apply(false);
             }
+        }
+
+        public void MouseMove(Vector2 position)
+        {
+            this._lastMousePos = position;
+            this._host.SendMouseMoveEvent(new CefMouseEvent((int)position.x, (int)position.y, CefEventFlags.None), false);
+        }
+
+        public void MouseOut()
+        {
+            if (this._lastMousePos == null)
+            {
+                return;
+            }
+
+            var position = this._lastMousePos.Value;
+            this._host.SendMouseMoveEvent(new CefMouseEvent((int)position.x, (int)position.y, CefEventFlags.None), true);
+            this._lastMousePos = null;
+        }
+
+        public void Shutdown()
+        {
+            if (this._host != null)
+            {
+                this._host.CloseBrowser(true);
+                this._host.Dispose();
+                this._host = null;
+            }
+        }
+
+
+        protected override CefLoadHandler GetLoadHandler()
+        {
+            return base.GetLoadHandler();
         }
 
         protected override CefDialogHandler GetDialogHandler()
@@ -52,7 +117,37 @@ namespace StationeersWebDisplay.Cef
             return this._renderHandler;
         }
 
+        private void _TrySetHost(CefBrowserHost host)
+        {
+            this._host = host;
+            Logging.LogTrace("TrySetHost");
+            if (this._pendingUrl != null)
+            {
+                Logging.LogTrace("Host set with a pending url.  Re-navigating.");
+                this._host.GetBrowser().GetMainFrame().LoadUrl(this._pendingUrl);
+                this._pendingUrl = null;
+            }
+        }
+
         // TODO: Request handler, only allow requests to whitelisted sites / the api.
+
+        private class LoadHandler : CefLoadHandler
+        {
+            private readonly OffscreenCefClient client;
+            public LoadHandler(OffscreenCefClient client) {
+                this.client = client;
+            }
+
+            protected override void OnLoadStart(CefBrowser browser, CefFrame frame, CefTransitionType transitionType)
+            {
+                base.OnLoadStart(browser, frame, transitionType);
+            }
+
+            protected override void OnLoadEnd(CefBrowser browser, CefFrame frame, int httpStatusCode)
+            {
+                base.OnLoadEnd(browser, frame, httpStatusCode);
+            }
+        }
 
         private class DialogHandler : CefDialogHandler
         {
@@ -72,6 +167,17 @@ namespace StationeersWebDisplay.Cef
 
         private class LifeSpanHandler : CefLifeSpanHandler
         {
+            private readonly OffscreenCefClient client;
+            public LifeSpanHandler(OffscreenCefClient client)
+            {
+                this.client = client;
+            }
+
+            protected override void OnAfterCreated(CefBrowser browser)
+            {
+                this.client._TrySetHost(browser.GetHost());
+                base.OnAfterCreated(browser);
+            }
             protected override bool OnBeforePopup(CefBrowser browser, CefFrame frame, string targetUrl, string targetFrameName, CefWindowOpenDisposition targetDisposition, bool userGesture, CefPopupFeatures popupFeatures, CefWindowInfo windowInfo, ref CefClient client, CefBrowserSettings settings, ref CefDictionaryValue extraInfo, ref bool noJavascriptAccess)
             {
                 return false;
