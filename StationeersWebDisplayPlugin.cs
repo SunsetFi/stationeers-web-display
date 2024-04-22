@@ -69,10 +69,12 @@ namespace StationeersWebDisplay
             {
                 var material = Reflection.GetPrivateField<Material>(frame, "PictureImage");
                 var display = frame.GetOrAddComponent<WebDisplayBehavior>();
-                //display.Bezel = new(0, 67);
+                // Hack to make the picture frames work as a screen due to their non-rendering bezel.
+                // When we have our own game object, this won't be necessary as we can use our own properly sized collider.
+                display.Bezel = new(0.19f, 0.25f);
                 display.RenderMaterial = material;
 
-                display.Url = "https://codepen.io/splotch/pen/qdEJeX"; // "https://www.youtube.com/embed/pE_RXUWw9ys?autoplay=1&mute=1";
+                display.Url = "https://codepen.io/SunsetFi/pen/oNOJEje"; // "https://www.youtube.com/embed/pE_RXUWw9ys?autoplay=1&mute=1";
             }
             catch(Exception ex)
             {

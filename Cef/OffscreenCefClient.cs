@@ -69,6 +69,17 @@ namespace StationeersWebDisplay.Cef
             this._host.SendMouseMoveEvent(new CefMouseEvent((int)position.x, (int)position.y, CefEventFlags.None), false);
         }
 
+        public void MouseDown(Vector2 position)
+        {
+            this._lastMousePos = position;
+            this._host.SendMouseClickEvent(new CefMouseEvent((int)position.x, (int)position.y, CefEventFlags.None), CefMouseButtonType.Left, false, 1);
+        }
+
+        public void MouseUp(Vector2 position)
+        {
+            this._host.SendMouseClickEvent(new CefMouseEvent((int)position.x, (int)position.y, CefEventFlags.None), CefMouseButtonType.Left, true, 1);
+        }
+
         public void MouseOut()
         {
             if (this._lastMousePos == null)
