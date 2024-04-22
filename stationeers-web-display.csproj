@@ -1,0 +1,90 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Target Name="CheckEnvironmentVars">
+    <Error Text="Please set the StationeersGameDir environment variable." Condition="'$(StationeersGameDir)' == ''" ContinueOnError="false" />
+  </Target>
+
+  <PropertyGroup>
+    <BepCoreFolder>$(StationeersGameDir)/BepInEx/core</BepCoreFolder>
+    <BepPluginFolder>$(StationeersGameDir)/BepInEx/plugins</BepPluginFolder>
+    <ModOutputDir>$(BepPluginFolder)/StationeersWebDisplay</ModOutputDir>
+    <StationeersBinaries>$(StationeersGameDir)/rocketstation_Data/Managed</StationeersBinaries>
+    <Platforms>AnyCPU;ARM64;x64</Platforms>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <PlatformTarget>x64</PlatformTarget>
+    <RootNamespace>StationeersWebDisplay</RootNamespace>
+    <AssemblyName>StationeersWebDisplay</AssemblyName>
+    <OutputType>Library</OutputType>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>latest</LangVersion>
+    <FileAlignment>512</FileAlignment>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutDir>$(ModOutputDir)</OutDir>
+    <PublishDir>$(ModOutputDir)</PublishDir>
+    <DefineConstants>$(DefineConstants);DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <DebugType>none</DebugType>
+    <Optimize>true</Optimize>
+    <OutDir>$(ModOutputDir)</OutDir>
+    <PublishDir>$(ModOutputDir)</PublishDir>
+    <DefineConstants>$(DefineConstants);TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CefSharp.OffScreen" Version="123.0.60" />
+  </ItemGroup>
+
+  <ItemGroup>
+
+    <Reference Include="BepInEx" CopyToPublishDirectory="Never" PrivateAssets="All">
+      <HintPath>$(BepCoreFolder)/BepInEx.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="BepInEx.Harmony" CopyToPublishDirectory="Never" PrivateAssets="All">
+      <HintPath>$(BepCoreFolder)/BepInEx.Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="0Harmony" CopyToPublishDirectory="Never" PrivateAssets="All">
+      <HintPath>$(BepCoreFolder)/0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+
+    <Reference Include="Assembly-CSharp" CopyToPublishDirectory="Never" PrivateAssets="All">
+      <HintPath>$(StationeersBinaries)/Assembly-CSharp.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Assembly-CSharp-firstpass" CopyToPublishDirectory="Never" PrivateAssets="All">
+      <HintPath>$(StationeersBinaries)/Assembly-CSharp-firstpass.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine" CopyToPublishDirectory="Never" PrivateAssets="All">
+      <HintPath>$(StationeersBinaries)/UnityEngine.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule" CopyToPublishDirectory="Never" PrivateAssets="All">
+      <HintPath>$(StationeersBinaries)/UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UI" CopyToPublishDirectory="Never" PrivateAssets="All">
+      <HintPath>$(StationeersBinaries)/UnityEngine.UI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+</Project>
