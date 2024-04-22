@@ -96,14 +96,14 @@ namespace StationeersWebDisplay
             var vector3 = new Plane(this.transform.forward, this.transform.position).ClosestPointOnPlane(hitInfo.point) - this.transform.position;
             var localScale = this.transform.localScale;
             var cursorPos = new Vector2(
-                0.5f + (vector3.z - this.Bezel.Width) / (localScale.z - this.Bezel.Width * 2),
+                0.5f + (vector3.x - this.Bezel.Width) / (localScale.x - this.Bezel.Width * 2),
                 0.5f - (vector3.y - this.Bezel.Height) / (localScale.y - this.Bezel.Height * 2)
             );
 
             var browserPos = new Vector2(cursorPos.x * this._browserSize.Width, cursorPos.y * this._browserSize.Height);
             if (UnityEngine.Input.GetMouseButton(0))
             {
-                Logging.LogTrace($"Mouse {cursorPos.x} {cursorPos.y} - {browserPos.x} {browserPos.y}");
+                Logging.LogTrace($"Mouse offset {vector3.x} {vector3.y} scale {localScale.x} {localScale.y} cursorPos {cursorPos.x} {cursorPos.y} - browserPos {browserPos.x} {browserPos.y}");
             }
 
             if (cursorPos.x >= 0 && cursorPos.x <= 1 && cursorPos.y >= 0 && cursorPos.y <= 1)
