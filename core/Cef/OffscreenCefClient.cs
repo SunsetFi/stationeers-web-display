@@ -7,7 +7,7 @@ using Xilium.CefGlue;
 
 namespace StationeersWebDisplay.Cef
 {
-    internal class OffscreenCefClient : CefClient
+    public class OffscreenCefClient : CefClient
     {
         private readonly DialogHandler _dialogHandler = new();
         private readonly DownloadHandler _downloadHandler = new();
@@ -145,7 +145,8 @@ namespace StationeersWebDisplay.Cef
         private class LoadHandler : CefLoadHandler
         {
             private readonly OffscreenCefClient client;
-            public LoadHandler(OffscreenCefClient client) {
+            public LoadHandler(OffscreenCefClient client)
+            {
                 this.client = client;
             }
 

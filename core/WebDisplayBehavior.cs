@@ -1,37 +1,19 @@
-﻿using Objects.Rockets.Log;
-using Objects.Rockets.Log.RocketEvents;
-using StationeersWebDisplay.Cef;
+﻿using StationeersWebDisplay.Cef;
 using System.Drawing;
 using UnityEngine;
-using UnityEngine.Windows;
 
 namespace StationeersWebDisplay
 {
     internal class WebDisplayBehavior : MonoBehaviour
     {
         private readonly Size _browserSize = new Size(1024, 768);
-        private readonly Texture2D _browserTexture = new Texture2D(1024, 768, TextureFormat.BGRA32, false);
-
+        private Texture2D _browserTexture;
         private OffscreenCefClient _browserClient;
-        private Collider _collider;
         private bool _mouseDown = false;
         private bool _trackingMouse = false;
 
-        private Material _renderMaterial;
-        public Material RenderMaterial
-        {
-            get
-            {
-                return this._renderMaterial;
-            }
-            set
-            {
-                this._renderMaterial = value;
-                this._renderMaterial.mainTexture = this._browserTexture;
-                this._renderMaterial.mainTextureScale = new Vector2(1, -1);
-            }
-        }
-
+        public MeshRenderer Renderer;
+        public Collider CursorCollider;
         public Vector2 Bezel = new(0, 0);
 
         private string _url = "about:blank";
@@ -59,19 +41,20 @@ namespace StationeersWebDisplay
         void Awake()
         {
             Logging.LogTrace($"Creating WebDisplayBehavior with url {this._url}");
+
+            this._browserTexture = new Texture2D(1024, 768, TextureFormat.BGRA32, false);
+
+            this.Renderer.material = new Material(Shader.Find("Default-Material"));
+            this.Renderer.material.color = UnityEngine.Color.black;
+            this.Renderer.material.mainTexture = this._browserTexture;
+            // Unity texture coords are flipped, so flip it back to match the browser.
+            this.Renderer.material.mainTextureScale = new Vector2(1, -1);
+
             this._browserClient = CefHost.CreateClient(this._url, this._browserSize);
-            this._collider = this.gameObject.GetComponent<Collider>();
-            if (this._collider == null)
-            {
-                Logging.LogError("Unable to find collider for WebDisplayBehavior.  Mouse interactivity will be disabled.");
-            }
         }
 
         void Update()
         {
-            // This is for the picture frame hyjack.  Do not use on final.
-            this._renderMaterial.mainTexture = this._browserTexture;
-            this._renderMaterial.mainTextureScale = new Vector2(1, -1);
             this._browserClient.CopyToTexture(this._browserTexture);
 
             this.UpdateCursor();
@@ -86,13 +69,14 @@ namespace StationeersWebDisplay
 
         private void UpdateCursor()
         {
-            if (this._collider == null)
+            var collider = this.CursorCollider;
+            if (this.CursorCollider == null)
             {
                 return;
             }
 
             var ray = new Ray(Camera.main.ScreenToWorldPoint(new Vector3(0.5f, 0.5f, 0.0f)), Camera.main.transform.forward);
-            if (!this._collider.Raycast(ray, out var hitInfo, 1f))
+            if (!collider.Raycast(ray, out var hitInfo, 1f))
             {
                 this._browserClient.MouseOut();
                 return;
@@ -101,7 +85,7 @@ namespace StationeersWebDisplay
             var intersectionPoint = new Plane(this.transform.forward, this.transform.position).ClosestPointOnPlane(hitInfo.point);
 
             // TODO: Adjust for rotation.
-            var colliderBounds = this._collider.bounds;
+            var colliderBounds = collider.bounds;
             var cursorPos = new Vector2(
                 1 - (intersectionPoint.x - colliderBounds.min.x) / (colliderBounds.max.x - colliderBounds.min.x),
                 1 - (intersectionPoint.y - colliderBounds.min.y) / (colliderBounds.max.y - colliderBounds.min.y)
@@ -142,7 +126,7 @@ namespace StationeersWebDisplay
             {
                 this._browserClient.MouseOut();
                 this._mouseDown = UnityEngine.Input.GetMouseButton(0);
-            }            
+            }
         }
     }
 }
