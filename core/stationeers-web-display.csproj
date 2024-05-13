@@ -52,10 +52,19 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Reference Include="StationeersMods.Interface" CopyToPublishDirectory="Never" PrivateAssets="All">
-			<HintPath>$(BepPluginFolder)/StationeersMods/StationeersMods.Interface.dll</HintPath>
+		<Reference Include="BepInEx" CopyToPublishDirectory="Never" PrivateAssets="All">
+			<HintPath>$(BepCoreFolder)/BepInEx.dll</HintPath>
 			<Private>false</Private>
 		</Reference>
+		<Reference Include="BepInEx.Harmony" CopyToPublishDirectory="Never" PrivateAssets="All">
+			<HintPath>$(BepCoreFolder)/BepInEx.Harmony.dll</HintPath>
+			<Private>false</Private>
+		</Reference>
+		<Reference Include="0Harmony" CopyToPublishDirectory="Never" PrivateAssets="All">
+			<HintPath>$(BepCoreFolder)/0Harmony.dll</HintPath>
+			<Private>false</Private>
+		</Reference>
+		
 		<Reference Include="Assembly-CSharp" CopyToPublishDirectory="Never" PrivateAssets="All">
 			<HintPath>$(StationeersBinaries)/Assembly-CSharp.dll</HintPath>
 			<Private>false</Private>

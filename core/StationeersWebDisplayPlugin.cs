@@ -1,19 +1,21 @@
 
 using System.IO;
-using StationeersMods.Interface;
+using BepInEx;
+using HarmonyLib;
 using StationeersWebDisplay.Cef;
 
 namespace StationeersWebDisplay
 {
-    public class StationeersWebDispay : ModBehaviour
+    [BepInPlugin("dev.sunsetfi.stationeers.webdisplay", "Chromium Web Renderer API for Stationeers", "1.0.0.0")]
+    public class StationeersWebDisplayPlugin : BaseUnityPlugin
     {
-        public static StationeersWebDispay Instance;
+        public static StationeersWebDisplayPlugin Instance;
 
         public static string AssemblyDirectory
         {
             get
             {
-                var assemblyLocation = typeof(StationeersWebDispay).Assembly.Location;
+                var assemblyLocation = typeof(StationeersWebDisplayPlugin).Assembly.Location;
                 var assemblyDir = Path.GetDirectoryName(assemblyLocation);
                 return assemblyDir;
             }
@@ -28,11 +30,7 @@ namespace StationeersWebDisplay
             //     throw new Exception("Last ditch assembly resolve failed.");
             // };
 
-            StationeersWebDispay.Instance = this;
-        }
-
-        public override void OnLoaded(ContentHandler contentHandler)
-        {
+            StationeersWebDisplayPlugin.Instance = this;
             CefHost.Initialize();
         }
     }

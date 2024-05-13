@@ -11,7 +11,7 @@ namespace StationeersWebDisplay
         {
             get
             {
-                var assemblyDir = StationeersWebDispay.AssemblyDirectory;
+                var assemblyDir = StationeersWebDisplayPlugin.AssemblyDirectory;
                 var path = Path.Combine(assemblyDir, "log.txt");
                 return path;
             }

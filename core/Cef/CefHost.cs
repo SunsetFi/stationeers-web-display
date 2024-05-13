@@ -24,7 +24,7 @@ namespace StationeersWebDisplay.Cef
             try
             {
                 Logging.LogTrace("Loading CEF");
-                CefRuntime.Load(StationeersWebDispay.AssemblyDirectory);
+                CefRuntime.Load(StationeersWebDisplayPlugin.AssemblyDirectory);
                 Logging.LogTrace("CEF loaded");
 
                 var cefArgs = new CefMainArgs(new string[] { "mute-audio" });
@@ -39,7 +39,7 @@ namespace StationeersWebDisplay.Cef
 
                 var cefSettings = new CefSettings
                 {
-                    BrowserSubprocessPath = Path.Combine(StationeersWebDispay.AssemblyDirectory, "CefGlueBrowserProcess/Xilium.CefGlue.BrowserProcess.exe"),
+                    BrowserSubprocessPath = Path.Combine(StationeersWebDisplayPlugin.AssemblyDirectory, "CefGlueBrowserProcess/Xilium.CefGlue.BrowserProcess.exe"),
                     MultiThreadedMessageLoop = false,
                     LogSeverity = CefLogSeverity.Verbose,
                     LogFile = "cef.log",
@@ -51,7 +51,7 @@ namespace StationeersWebDisplay.Cef
                 Logging.LogTrace("CEF runtime initialized");
 
                 var pump = new GameObject("CefMessagePump");
-                pump.transform.parent = StationeersWebDispay.Instance.gameObject.transform;
+                pump.transform.parent = StationeersWebDisplayPlugin.Instance.gameObject.transform;
                 pump.AddComponent<CefMessagePump>();
                 Logging.LogTrace("CEF Message pump started");
             }
