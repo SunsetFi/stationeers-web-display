@@ -2,14 +2,14 @@ using System;
 using HarmonyLib;
 using StationeersMods.Interface;
 using StationeersWebDisplay;
-using StationeersWebDisplay.Cef;
+// using StationeersWebDisplay.Cef;
 
 public class StationeersWebDisplayMod : ModBehaviour
 {
     public override void OnLoaded(ContentHandler contentHandler)
     {
         UnityEngine.Debug.Log("StationeersWebDisplay Loading...");
-        CefHost.Initialize();
+        // CefHost.Initialize();
         Harmony harmony = new Harmony("dev.sunsetfi.stationeers.webdisplay");
         PrefabPatch.prefabs = contentHandler.prefabs;
         harmony.PatchAll();
