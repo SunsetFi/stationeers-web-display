@@ -1,22 +1,38 @@
 ﻿using StationeersWebDisplay.Cef;
+using System;
 using System.Drawing;
 using UnityEngine;
 
 namespace StationeersWebDisplay
 {
-    internal class WebDisplayBehavior : MonoBehaviour
+    public class WebDisplayBehavior : MonoBehaviour
     {
-        private readonly Size _browserSize = new Size(1024, 768);
+        [NonSerialized]
         private Texture2D _browserTexture;
+
+        [NonSerialized]
+        private Material _renderMaterial;
+
+        [NonSerialized]
         private OffscreenCefClient _browserClient;
+
+        [NonSerialized]
         private bool _mouseDown = false;
+        [NonSerialized]
         private bool _trackingMouse = false;
 
+        public Size Resolution = new Size(1024, 1024);
+
         public MeshRenderer Renderer;
+
         public Collider CursorCollider;
+        public float CursorInteractDistance = 2.5f;
+
         public Vector2 Bezel = new(0, 0);
 
+        [NonSerialized]
         private string _url = "about:blank";
+
         public string Url
         {
             get
@@ -42,19 +58,23 @@ namespace StationeersWebDisplay
         {
             Logging.LogTrace($"Creating WebDisplayBehavior with url {this._url}");
 
-            this._browserTexture = new Texture2D(1024, 768, TextureFormat.BGRA32, false);
+            this._browserTexture = new Texture2D(this.Resolution.Width, this.Resolution.Height, TextureFormat.BGRA32, false);
 
-            this.Renderer.material = new Material(Shader.Find("Default-Material"));
-            this.Renderer.material.color = UnityEngine.Color.black;
-            this.Renderer.material.mainTexture = this._browserTexture;
-            // Unity texture coords are flipped, so flip it back to match the browser.
-            this.Renderer.material.mainTextureScale = new Vector2(1, -1);
+            // Weird jank to set up a shader through code.
+            this._renderMaterial = new Material(Shader.Find("Standard"));
+            this._renderMaterial.SetTexture("_MainTex", this._browserTexture);
+            this._renderMaterial.mainTexture = this._browserTexture;
+            this._renderMaterial.mainTextureScale = new Vector2(1, -1);
 
-            this._browserClient = CefHost.CreateClient(this._url, this._browserSize);
+            this._browserClient = CefHost.CreateClient(this._url, this.Resolution);
         }
 
         void Update()
         {
+            // This is a bit aggressive doing this on every frame, but it seems Awake might be too early
+            // for some configurations?
+            this.Renderer.material = this._renderMaterial;
+
             this._browserClient.CopyToTexture(this._browserTexture);
 
             this.UpdateCursor();
@@ -76,7 +96,7 @@ namespace StationeersWebDisplay
             }
 
             var ray = new Ray(Camera.main.ScreenToWorldPoint(new Vector3(0.5f, 0.5f, 0.0f)), Camera.main.transform.forward);
-            if (!collider.Raycast(ray, out var hitInfo, 1f))
+            if (!collider.Raycast(ray, out var hitInfo, this.CursorInteractDistance))
             {
                 this._browserClient.MouseOut();
                 return;
@@ -102,7 +122,7 @@ namespace StationeersWebDisplay
 
             if (cursorPos.x >= 0 && cursorPos.x <= 1 && cursorPos.y >= 0 && cursorPos.y <= 1)
             {
-                var browserPos = new Vector2(cursorPos.x * this._browserSize.Width, cursorPos.y * this._browserSize.Height);
+                var browserPos = new Vector2(cursorPos.x * this.Resolution.Width, cursorPos.y * this.Resolution.Height);
                 this._browserClient.MouseMove(browserPos);
                 if (UnityEngine.Input.GetMouseButton(0))
                 {

@@ -52,7 +52,7 @@ BoxCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 1.42, y: 1.42, z: 0.001}
+  m_Size: {x: 1.42, y: 1.42, z: 0.05}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &3267169523333337382
 GameObject:
@@ -157,7 +157,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5174398517406297031}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: -0.7071068, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0.1961}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -165,7 +165,7 @@ Transform:
   - {fileID: 2856869529633282608}
   m_Father: {fileID: 8794761537875840622}
   m_RootOrder: 1
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -90}
 --- !u!33 &7323327520523149748
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -260,6 +260,7 @@ GameObject:
   - component: {fileID: 7657924597274408193}
   - component: {fileID: 4414993433201043888}
   - component: {fileID: 6854254191154990367}
+  - component: {fileID: 6534944481909055201}
   m_Layer: 0
   m_Name: StructureWebDisplay
   m_TagString: Untagged
@@ -406,41 +407,7 @@ MonoBehaviour:
     Cutable: {fileID: 0}
     Light: {r: 1, g: 1, b: 1, a: 1}
     Color: {r: 1, g: 1, b: 1, a: 1}
-  Interactables:
-  - StringKey: Powered
-    StringHash: 87111221
-    Parent: {fileID: 6854254191154990367}
-    Collider: {fileID: 0}
-    FakeCollider: {fileID: 0}
-    Bounds:
-      m_Center: {x: 0, y: 0, z: 0}
-      m_Extent: {x: 0, y: 0, z: 0}
-    Action: 42
-    Animator: {fileID: 0}
-    JoinInProgressSync: 1
-    Layer: 0
-    CanKeyInteract: 0
-    KeyMap: 
-    AssociatedAudioEvents: []
-    ActionName: 
-    _state: 0
-  - StringKey: OnOff
-    StringHash: 734558724
-    Parent: {fileID: 6854254191154990367}
-    Collider: {fileID: 0}
-    FakeCollider: {fileID: 0}
-    Bounds:
-      m_Center: {x: 0, y: 0, z: 0}
-      m_Extent: {x: 0, y: 0, z: 0}
-    Action: 36
-    Animator: {fileID: 0}
-    JoinInProgressSync: 1
-    Layer: 0
-    CanKeyInteract: 0
-    KeyMap: 
-    AssociatedAudioEvents: []
-    ActionName: 
-    _state: 1
+  Interactables: []
   AudioEvents: []
   AudioSources: []
   BaseAnimator: {fileID: 0}
@@ -464,10 +431,10 @@ MonoBehaviour:
   Renderers: []
   RocketRenderers: []
   HasErrorState: 0
-  HasPowerState: 1
+  HasPowerState: 0
   HasActivateState: 0
   HasLockState: 0
-  HasOnOffState: 1
+  HasOnOffState: 0
   HasModeState: 0
   HasOpenState: 0
   HasImportState: 0
@@ -477,7 +444,7 @@ MonoBehaviour:
   HasButton2State: 0
   HasButton3State: 0
   HasColorState: 0
-  HasAccessState: 1
+  HasAccessState: 0
   _staticColliders:
   - {fileID: 6408514154583478246}
   - {fileID: 1952262553110515892}
@@ -547,6 +514,14 @@ MonoBehaviour:
     EntryTime: 2
     EntryQuantity: 0
     EntryQuantity2: 0
+  UpgradePrefab:
+    UpgradeTools:
+      ToolEntry: {fileID: 0}
+      ToolEntry2: {fileID: 0}
+      EntryTime: 2
+      EntryQuantity: 0
+      EntryQuantity2: 0
+    Prefab: {fileID: 0}
   GridSize: 0.5
   GridOffset: 0.25
   _useAxisIndependentGridSnapping: 0
@@ -604,6 +579,22 @@ MonoBehaviour:
   SmallCollisionType: 7
   DualRegister: 0
   requiresFrame: 0
-  HasDataConnection: 1
+  HasDataConnection: 0
   UsedPower: 10
   AttachedCables: []
+  _infoScreen: {fileID: 0}
+--- !u!114 &6534944481909055201
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8162375928810034388}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1520597038, guid: df7247329fb3d7048988945d631d0350, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Renderer: {fileID: 5888983481797356253}
+  CursorCollider: {fileID: 1952262553110515892}
+  Bezel: {x: 0, y: 0}
