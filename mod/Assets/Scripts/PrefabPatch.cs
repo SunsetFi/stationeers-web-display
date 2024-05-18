@@ -20,11 +20,26 @@ namespace StationeersWebDisplay
             try
             {
                 Debug.Log("Prefab Patch started");
+                Material color_white = StationeersModsUtility.GetMaterial("color_white");
                 foreach (var gameObject in prefabs)
                 {
                     Thing thing = gameObject.GetComponent<Thing>();
 
-                    // Additional patching goes here, like setting references to materials(colors) or tools from the game
+
+                    if (thing is StructureWebDisplay)
+                    {
+                        Debug.Log("patch WebDisplay: " + thing.name);
+                        var webDisplay = gameObject.GetComponent<StructureWebDisplay>();
+
+                        webDisplay.BuildStates[0].Tool.ToolExit = StationeersModsUtility.FindTool(StationeersTool.DRILL);
+                        webDisplay.Blueprint.GetComponent<MeshRenderer>().materials = StationeersModsUtility.GetBlueprintMaterials(2);
+                    }
+
+                    if (thing is MultiConstructor)
+                    {
+                        Debug.Log("patch WebDisplayKit");
+                        thing.Blueprint.GetComponent<MeshRenderer>().materials = StationeersModsUtility.GetBlueprintMaterials(2);
+                    }
 
                     if (thing != null)
                     {

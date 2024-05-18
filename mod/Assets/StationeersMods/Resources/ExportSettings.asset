@@ -15,12 +15,12 @@ MonoBehaviour:
   _author: SunsetFi
   _description: Web Displays for Stationeers
   _name: StationeersWebDisplay
-  _outputDirectory: D:/Users/RoboPhred/Documents/my games/Stationeers/mods
+  _outputDirectory: C:/Users/user/Documents/My Games/Stationeers/mods
   _stationeersDirectory: 
   _stationeersArguments: 
   _version: 0.0.1
   _assemblies:
-  - Assets/Scripts/StationeersWebDisplay.asmdef
+  - Assets/Scripts/StationeersWebDisplayMod.asmdef
   _artifacts: []
   _contentTypes: -1
   _includePdbs: 0
