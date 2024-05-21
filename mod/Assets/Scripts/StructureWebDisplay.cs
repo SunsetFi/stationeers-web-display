@@ -16,13 +16,32 @@ namespace StationeersWebDisplay
 			base.Awake();
 
 			var webDisplay = gameObject.GetComponent<WebDisplayBehavior>();
-			// if (webDisplay == null)
-			// {
-			// 	Debug.Log("WebDisplayBehavior is missing!!!");
-			// 	webDisplay = gameObject.AddComponent<WebDisplayBehavior>();
-			// }
 
+			webDisplay.Enabled = this.Powered;
 			webDisplay.Url = "http://localhost:8080/#/screens/demo"; //"https://www.youtube.com/embed/EAO7uZSew74?si=BhctKMWFLgVnRZNc";
+		}
+
+		public override void OnInteractableUpdated(Interactable interactable)
+		{
+			base.OnInteractableUpdated(interactable);
+
+			if (interactable.Action == InteractableType.Powered)
+			{
+				this.PoweredChanged();
+			}
+		}
+
+		private void PoweredChanged()
+		{
+			var webDisplay = gameObject.GetComponent<WebDisplayBehavior>();
+			if (this.Powered)
+			{
+				webDisplay.Enable();
+			}
+			else
+			{
+				webDisplay.Disable();
+			}
 		}
 	}
 }

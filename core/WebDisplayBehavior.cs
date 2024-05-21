@@ -1,4 +1,5 @@
-﻿using StationeersWebDisplay.Cef;
+﻿using Assets.Scripts.Objects;
+using StationeersWebDisplay.Cef;
 using System;
 using System.Drawing;
 using UnityEngine;
@@ -7,6 +8,9 @@ namespace StationeersWebDisplay
 {
     public class WebDisplayBehavior : MonoBehaviour
     {
+        [NonSerialized]
+        private Texture2D _disabledTexture;
+
         [NonSerialized]
         private Texture2D _browserTexture;
 
@@ -28,7 +32,32 @@ namespace StationeersWebDisplay
         public Collider CursorCollider;
         public float CursorInteractDistance = 2.5f;
 
-        [NonSerialized]
+        private bool _enabled = true;
+
+        public bool Enabled
+        {
+            get
+            {
+                return this._enabled;
+            }
+            set
+            {
+                if (this._enabled == value)
+                {
+                    return;
+                }
+
+                if (value)
+                {
+                    this.Enable();
+                }
+                else
+                {
+                    this.Disable();
+                }
+            }
+        }
+
         private string _url = "about:blank";
 
         public string Url
@@ -52,30 +81,87 @@ namespace StationeersWebDisplay
             }
         }
 
-        void Awake()
+        public void Enable()
         {
-            Logging.LogTrace($"Creating WebDisplayBehavior with url {this._url}");
+            if (this._browserClient != null)
+            {
+                return;
+            }
+
+            this._enabled = true;
             this._browserClient = CefHost.CreateClient(this._url, this.Resolution);
 
+            this._renderMaterial.SetTexture("_MainTex", this._browserTexture);
 
+            this._renderMaterial.EnableKeyword("_EMISSION");
+            this._renderMaterial.SetTexture("_EmissionMap", this._browserTexture);
+            this._renderMaterial.SetColor("_EmissionColor", UnityEngine.Color.white * Mathf.LinearToGammaSpace(0.75f));
+        }
+
+        public void Disable()
+        {
+            if (this._browserClient == null)
+            {
+                return;
+            }
+
+            this._enabled = false;
+            this._browserClient.Shutdown();
+            this._browserClient = null;
+
+            this._renderMaterial.SetTexture("_MainTex", this._disabledTexture);
+
+            // This is taking a lot of effort to turn off without getting a white screen...
+            this._renderMaterial.DisableKeyword("_EMISSION");
+            this._renderMaterial.SetTexture("_EmissionMap", this._disabledTexture);
+            this._renderMaterial.SetColor("_EmissionColor", UnityEngine.Color.black);
+        }
+
+        void Awake()
+        {
             this._browserTexture = new Texture2D(this.Resolution.Width, this.Resolution.Height, TextureFormat.BGRA32, false);
+            this._disabledTexture = new Texture2D(this.Resolution.Width, this.Resolution.Height, TextureFormat.BGRA32, false);
+
+            var blackArray = new Color32[this.Resolution.Width * this.Resolution.Height];
+            for (var i = 0; i < blackArray.Length; i++)
+            {
+                blackArray[i] = new Color32(0, 0, 0, 255);
+            }
+            this._disabledTexture.SetPixels32(blackArray);
 
             this._renderMaterial = new Material(Shader.Find("Standard"));
 
-            // Weird jank to set up a shader through code.
-            this._renderMaterial.SetTexture("_MainTex", this._browserTexture);
-            this._renderMaterial.mainTexture = this._browserTexture;
             // Unity has an inverted Y axis compared to the browser renderer.
-            this._renderMaterial.mainTextureScale = new Vector2(1, -1);
-
-            // Set up emission so our screen is glowing in the dark.
-            this._renderMaterial.EnableKeyword("_EMISSION");
-            this._renderMaterial.SetColor("_EmissionColor", UnityEngine.Color.white * Mathf.LinearToGammaSpace(0.75f));
-            this._renderMaterial.SetTexture("_EmissionMap", this._browserTexture);
+            this._renderMaterial.SetTextureScale("_MainTex", new Vector2(1, -1));
             this._renderMaterial.SetTextureScale("_EmissionMap", new Vector2(1, -1));
+
+            // We may have had enabled set from the editor. so we need to 
+            if (this._enabled)
+            {
+                this.Enable();
+            }
+            else
+            {
+                this.Disable();
+            }
         }
 
         void Update()
+        {
+            if (this._browserClient != null)
+            {
+                this.UpdateScreen();
+                this.UpdateCursor();
+            }
+        }
+
+        void OnDestroy()
+        {
+            this._browserClient.Shutdown();
+            this._browserClient = null;
+        }
+
+        private void UpdateScreen()
         {
             this._browserClient.CopyToTexture(this._browserTexture);
 
@@ -85,15 +171,6 @@ namespace StationeersWebDisplay
             {
                 this.Renderer.material = this._renderMaterial;
             }
-
-            this.UpdateCursor();
-        }
-
-        void OnDestroy()
-        {
-            Logging.LogTrace("Destroying WebDisplayBehavior");
-            this._browserClient.Shutdown();
-            this._browserClient = null;
         }
 
         private void UpdateCursor()
