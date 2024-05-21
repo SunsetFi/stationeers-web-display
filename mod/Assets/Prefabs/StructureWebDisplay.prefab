@@ -407,7 +407,41 @@ MonoBehaviour:
     Cutable: {fileID: 0}
     Light: {r: 1, g: 1, b: 1, a: 1}
     Color: {r: 1, g: 1, b: 1, a: 1}
-  Interactables: []
+  Interactables:
+  - StringKey: Powered
+    StringHash: 87111221
+    Parent: {fileID: 6854254191154990367}
+    Collider: {fileID: 0}
+    FakeCollider: {fileID: 0}
+    Bounds:
+      m_Center: {x: 0, y: 0, z: 0}
+      m_Extent: {x: 0, y: 0, z: 0}
+    Action: 42
+    Animator: {fileID: 0}
+    JoinInProgressSync: 1
+    Layer: 0
+    CanKeyInteract: 0
+    KeyMap: 
+    AssociatedAudioEvents: []
+    ActionName: 
+    _state: 0
+  - StringKey: OnOff
+    StringHash: 734558724
+    Parent: {fileID: 6854254191154990367}
+    Collider: {fileID: 0}
+    FakeCollider: {fileID: 0}
+    Bounds:
+      m_Center: {x: 0, y: 0, z: 0}
+      m_Extent: {x: 0, y: 0, z: 0}
+    Action: 36
+    Animator: {fileID: 0}
+    JoinInProgressSync: 1
+    Layer: 0
+    CanKeyInteract: 0
+    KeyMap: 
+    AssociatedAudioEvents: []
+    ActionName: 
+    _state: 1
   AudioEvents: []
   AudioSources: []
   BaseAnimator: {fileID: 0}
@@ -431,10 +465,10 @@ MonoBehaviour:
   Renderers: []
   RocketRenderers: []
   HasErrorState: 0
-  HasPowerState: 0
+  HasPowerState: 1
   HasActivateState: 0
   HasLockState: 0
-  HasOnOffState: 0
+  HasOnOffState: 1
   HasModeState: 0
   HasOpenState: 0
   HasImportState: 0
@@ -580,7 +614,7 @@ MonoBehaviour:
   DualRegister: 0
   requiresFrame: 0
   HasDataConnection: 1
-  UsedPower: 10
+  UsedPower: 200
   AttachedCables: []
   _infoScreen: {fileID: 0}
 --- !u!114 &6534944481909055201
@@ -597,5 +631,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Renderer: {fileID: 5888983481797356253}
   CursorCollider: {fileID: 1952262553110515892}
-  CursorInteractDistance: 2.5
-  Bezel: {x: 0, y: 0}
+  CursorInteractDistance: 2

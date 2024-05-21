@@ -13,6 +13,8 @@ namespace StationeersWebDisplay
 	{
 		public override void Awake()
 		{
+			base.Awake();
+
 			var webDisplay = gameObject.GetComponent<WebDisplayBehavior>();
 			// if (webDisplay == null)
 			// {
