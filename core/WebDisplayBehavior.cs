@@ -55,25 +55,36 @@ namespace StationeersWebDisplay
         void Awake()
         {
             Logging.LogTrace($"Creating WebDisplayBehavior with url {this._url}");
+            this._browserClient = CefHost.CreateClient(this._url, this.Resolution);
+
 
             this._browserTexture = new Texture2D(this.Resolution.Width, this.Resolution.Height, TextureFormat.BGRA32, false);
 
-            // Weird jank to set up a shader through code.
             this._renderMaterial = new Material(Shader.Find("Standard"));
+
+            // Weird jank to set up a shader through code.
             this._renderMaterial.SetTexture("_MainTex", this._browserTexture);
             this._renderMaterial.mainTexture = this._browserTexture;
+            // Unity has an inverted Y axis compared to the browser renderer.
             this._renderMaterial.mainTextureScale = new Vector2(1, -1);
 
-            this._browserClient = CefHost.CreateClient(this._url, this.Resolution);
+            // Set up emission so our screen is glowing in the dark.
+            this._renderMaterial.EnableKeyword("_EMISSION");
+            this._renderMaterial.SetColor("_EmissionColor", UnityEngine.Color.white * Mathf.LinearToGammaSpace(0.75f));
+            this._renderMaterial.SetTexture("_EmissionMap", this._browserTexture);
+            this._renderMaterial.SetTextureScale("_EmissionMap", new Vector2(1, -1));
         }
 
         void Update()
         {
+            this._browserClient.CopyToTexture(this._browserTexture);
+
             // This is a bit aggressive doing this on every frame, but it seems Awake might be too early
             // for some configurations?
-            this.Renderer.material = this._renderMaterial;
-
-            this._browserClient.CopyToTexture(this._browserTexture);
+            if (this.Renderer)
+            {
+                this.Renderer.material = this._renderMaterial;
+            }
 
             this.UpdateCursor();
         }
@@ -88,7 +99,7 @@ namespace StationeersWebDisplay
         private void UpdateCursor()
         {
             var collider = this.CursorCollider;
-            if (this.CursorCollider == null)
+            if (collider == null)
             {
                 return;
             }
@@ -138,7 +149,7 @@ namespace StationeersWebDisplay
             }
             else
             {
-                // This is a no-op if the mouse was not being tracked by thw browser.
+                // This is a no-op if the mouse was not being tracked by the browser.
                 this._browserClient.MouseOut();
 
                 this._mouseDown = UnityEngine.Input.GetMouseButton(0);
