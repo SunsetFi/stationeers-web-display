@@ -579,7 +579,7 @@ MonoBehaviour:
   SmallCollisionType: 7
   DualRegister: 0
   requiresFrame: 0
-  HasDataConnection: 0
+  HasDataConnection: 1
   UsedPower: 10
   AttachedCables: []
   _infoScreen: {fileID: 0}
@@ -597,4 +597,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Renderer: {fileID: 5888983481797356253}
   CursorCollider: {fileID: 1952262553110515892}
+  CursorInteractDistance: 2.5
   Bezel: {x: 0, y: 0}

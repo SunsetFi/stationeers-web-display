@@ -28,8 +28,6 @@ namespace StationeersWebDisplay
         public Collider CursorCollider;
         public float CursorInteractDistance = 2.5f;
 
-        public Vector2 Bezel = new(0, 0);
-
         [NonSerialized]
         private string _url = "about:blank";
 
@@ -111,14 +109,10 @@ namespace StationeersWebDisplay
                 1 - (intersectionPoint.y - colliderBounds.min.y) / (colliderBounds.max.y - colliderBounds.min.y)
             );
 
-            // Apply bezel percentage
-            cursorPos.x = (cursorPos.x - this.Bezel.x) / (1 - 2 * this.Bezel.x);
-            cursorPos.y = (cursorPos.y - this.Bezel.y) / (1 - 2 * this.Bezel.y);
-
-            if (UnityEngine.Input.GetMouseButton(0))
-            {
-                Logging.LogTrace($"intersection at {intersectionPoint.x} {intersectionPoint.y}, mins {colliderBounds.min.x} {colliderBounds.min.y} {colliderBounds.min.z} maxes {colliderBounds.max.x} {colliderBounds.max.y} {colliderBounds.max.z} cursor pos at {cursorPos.x} {cursorPos.y}");
-            }
+            // if (UnityEngine.Input.GetMouseButton(0))
+            // {
+            //     Logging.LogTrace($"intersection at {intersectionPoint.x} {intersectionPoint.y}, mins {colliderBounds.min.x} {colliderBounds.min.y} {colliderBounds.min.z} maxes {colliderBounds.max.x} {colliderBounds.max.y} {colliderBounds.max.z} cursor pos at {cursorPos.x} {cursorPos.y}");
+            // }
 
             if (cursorPos.x >= 0 && cursorPos.x <= 1 && cursorPos.y >= 0 && cursorPos.y <= 1)
             {
@@ -144,7 +138,9 @@ namespace StationeersWebDisplay
             }
             else
             {
+                // This is a no-op if the mouse was not being tracked by thw browser.
                 this._browserClient.MouseOut();
+
                 this._mouseDown = UnityEngine.Input.GetMouseButton(0);
             }
         }
