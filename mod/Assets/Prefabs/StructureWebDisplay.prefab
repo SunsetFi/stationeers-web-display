@@ -632,3 +632,5 @@ MonoBehaviour:
   Renderer: {fileID: 5888983481797356253}
   CursorCollider: {fileID: 1952262553110515892}
   CursorInteractDistance: 2
+  StartEnabled: 0
+  InitialUrl: http://localhost:8080#/screens/demo
