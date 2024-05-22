@@ -182,14 +182,30 @@ namespace StationeersWebDisplay
                 return;
             }
 
-            var intersectionPoint = new Plane(this.transform.forward, this.transform.position).ClosestPointOnPlane(hitInfo.point);
+            var screenPlane = new Plane(this.transform.forward, this.transform.position);
+            var intersectionPoint = screenPlane.ClosestPointOnPlane(hitInfo.point);
+            // Transform the hit point to the local space of the screen object
+            var localHitPoint = this.transform.InverseTransformPoint(intersectionPoint);
 
-            // TODO: Adjust for rotation.
             var colliderBounds = collider.bounds;
+            // Apply the transformation of the collider to the intersection point to get the local coordinates.
+            var localBounds = new Bounds(this.transform.InverseTransformPoint(colliderBounds.center),
+                                         this.transform.InverseTransformVector(colliderBounds.size));
+
+
             var cursorPos = new Vector2(
-                1 - (intersectionPoint.x - colliderBounds.min.x) / (colliderBounds.max.x - colliderBounds.min.x),
-                1 - (intersectionPoint.y - colliderBounds.min.y) / (colliderBounds.max.y - colliderBounds.min.y)
+                (localHitPoint.x - localBounds.min.x) / (localBounds.max.x - localBounds.min.x),
+                1 - (localHitPoint.y - localBounds.min.y) / (localBounds.max.y - localBounds.min.y)
             );
+
+            // Not sure why this is an issue or what the math behind this is, but we
+            // have a flipped axis on certain rotations
+            // Yes, this happens on two different axes.  Its baffling.
+            var eulerAngles = this.transform.rotation.eulerAngles;
+            if (eulerAngles.y == 0 || eulerAngles.y == 270)
+            {
+                cursorPos.x = 1 - cursorPos.x;
+            }
 
             // if (UnityEngine.Input.GetMouseButton(0))
             // {
