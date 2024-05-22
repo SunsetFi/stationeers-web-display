@@ -207,6 +207,9 @@ namespace StationeersWebDisplay
                 cursorPos.x = 1 - cursorPos.x;
             }
 
+            // Things get even weirder when rotated about the x or z axes...
+            // Not bothering with that for now.
+
             // if (UnityEngine.Input.GetMouseButton(0))
             // {
             //     Logging.LogTrace($"intersection at {intersectionPoint.x} {intersectionPoint.y}, mins {colliderBounds.min.x} {colliderBounds.min.y} {colliderBounds.min.z} maxes {colliderBounds.max.x} {colliderBounds.max.y} {colliderBounds.max.z} cursor pos at {cursorPos.x} {cursorPos.y}");
