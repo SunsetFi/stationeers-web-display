@@ -48,7 +48,6 @@ namespace StationeersWebDisplay.Cef
             {
                 if (this._host == null)
                 {
-                    Logging.LogTrace("URL set before host is ready.  Setting to pending");
                     this._pendingUrl = value;
                     return;
                 }
@@ -118,11 +117,6 @@ namespace StationeersWebDisplay.Cef
         }
 
 
-        protected override CefLoadHandler GetLoadHandler()
-        {
-            return base.GetLoadHandler();
-        }
-
         protected override CefDialogHandler GetDialogHandler()
         {
             return this._dialogHandler;
@@ -158,27 +152,6 @@ namespace StationeersWebDisplay.Cef
             }
         }
 
-        // TODO: Request handler, only allow requests to whitelisted sites / the api.
-
-        private class LoadHandler : CefLoadHandler
-        {
-            private readonly OffscreenCefClient client;
-            public LoadHandler(OffscreenCefClient client)
-            {
-                this.client = client;
-            }
-
-            protected override void OnLoadStart(CefBrowser browser, CefFrame frame, CefTransitionType transitionType)
-            {
-                base.OnLoadStart(browser, frame, transitionType);
-            }
-
-            protected override void OnLoadEnd(CefBrowser browser, CefFrame frame, int httpStatusCode)
-            {
-                base.OnLoadEnd(browser, frame, httpStatusCode);
-            }
-        }
-
         private class DialogHandler : CefDialogHandler
         {
             protected override bool OnFileDialog(CefBrowser browser, CefFileDialogMode mode, string title, string defaultFilePath, string[] acceptFilters, int selectedAcceptFilter, CefFileDialogCallback callback)
@@ -211,7 +184,8 @@ namespace StationeersWebDisplay.Cef
             }
             protected override bool OnBeforePopup(CefBrowser browser, CefFrame frame, string targetUrl, string targetFrameName, CefWindowOpenDisposition targetDisposition, bool userGesture, CefPopupFeatures popupFeatures, CefWindowInfo windowInfo, ref CefClient client, CefBrowserSettings settings, ref CefDictionaryValue extraInfo, ref bool noJavascriptAccess)
             {
-                return false;
+                client = null;
+                return true;
             }
         }
 
