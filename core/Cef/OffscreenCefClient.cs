@@ -14,8 +14,9 @@ namespace StationeersWebDisplay.Cef
         private readonly LifeSpanHandler _lifespanHandler;
         private readonly RenderHandler _renderHandler;
 
-        private readonly object PixelLock = new object();
+        private readonly object _pixelLock = new object();
         private byte[] _pixelBuffer;
+        private volatile bool _pixelBufferInvalidated = false;
 
         private CefBrowserHost _host;
 
@@ -56,10 +57,22 @@ namespace StationeersWebDisplay.Cef
 
         public void CopyToTexture(Texture2D pTexture)
         {
-            lock (this.PixelLock)
+            lock (this._pixelLock)
             {
                 pTexture.LoadRawTextureData(this._pixelBuffer);
                 pTexture.Apply(false);
+            }
+        }
+
+        public void CopyToTextureIfChanged(Texture2D pTexture)
+        {
+            if (this._pixelBufferInvalidated)
+            {
+                lock (this._pixelLock)
+                {
+                    this.CopyToTexture(pTexture);
+                    this._pixelBufferInvalidated = false;
+                }
             }
         }
 
@@ -173,7 +186,8 @@ namespace StationeersWebDisplay.Cef
         {
             protected override void OnBeforeDownload(CefBrowser browser, CefDownloadItem downloadItem, string suggestedName, CefBeforeDownloadCallback callback)
             {
-                // TODO: How do we cancel, just ignore?
+                // TODO: How do we cancel?
+                callback.Dispose();
             }
         }
 
@@ -242,11 +256,13 @@ namespace StationeersWebDisplay.Cef
             {
                 if (browser != null)
                 {
-                    lock (client.PixelLock)
+                    lock (client._pixelLock)
                     {
                         if (browser != null)
                             Marshal.Copy(buffer, this.client._pixelBuffer, 0, this.client._pixelBuffer.Length);
                     }
+
+                    client._pixelBufferInvalidated = true;
                 }
             }
 

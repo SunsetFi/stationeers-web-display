@@ -162,7 +162,7 @@ namespace StationeersWebDisplay
 
         private void UpdateScreen()
         {
-            this._browserClient.CopyToTexture(this._browserTexture);
+            this._browserClient.CopyToTextureIfChanged(this._browserTexture);
 
             // This is a bit aggressive doing this on every frame, but it seems Awake might be too early
             // for some configurations?
@@ -174,46 +174,14 @@ namespace StationeersWebDisplay
 
         private void UpdateCursor()
         {
-            var collider = this.CursorCollider;
-            if (collider == null)
-            {
-                return;
-            }
-
-            var ray = new Ray(Camera.main.ScreenToWorldPoint(new Vector3(0.5f, 0.5f, 0.0f)), Camera.main.transform.forward);
-            if (!collider.Raycast(ray, out var hitInfo, this.CursorInteractDistance))
+            var cursorPosNullable = this.GetCursorPos();
+            if (!cursorPosNullable.HasValue)
             {
                 this._browserClient.MouseOut();
                 return;
             }
 
-            var screenPlane = new Plane(this.transform.forward, this.transform.position);
-            var intersectionPoint = screenPlane.ClosestPointOnPlane(hitInfo.point);
-            // Transform the hit point to the local space of the screen object
-            var localHitPoint = this.transform.InverseTransformPoint(intersectionPoint);
-
-            var colliderBounds = collider.bounds;
-            // Apply the transformation of the collider to the intersection point to get the local coordinates.
-            var localBounds = new Bounds(this.transform.InverseTransformPoint(colliderBounds.center),
-                                         this.transform.InverseTransformVector(colliderBounds.size));
-
-
-            var cursorPos = new Vector2(
-                (localHitPoint.x - localBounds.min.x) / (localBounds.max.x - localBounds.min.x),
-                1 - (localHitPoint.y - localBounds.min.y) / (localBounds.max.y - localBounds.min.y)
-            );
-
-            // Not sure why this is an issue or what the math behind this is, but we
-            // have a flipped axis on certain rotations
-            // Yes, this happens on two different axes.  Its baffling.
-            var eulerAngles = this.transform.rotation.eulerAngles;
-            if (eulerAngles.y == 0 || eulerAngles.y == 270)
-            {
-                cursorPos.x = 1 - cursorPos.x;
-            }
-
-            // Things get even weirder when rotated about the x or z axes...
-            // Not bothering with that for now.
+            var cursorPos = cursorPosNullable.Value;
 
             // if (UnityEngine.Input.GetMouseButton(0))
             // {
@@ -249,6 +217,50 @@ namespace StationeersWebDisplay
 
                 this._mouseDown = UnityEngine.Input.GetMouseButton(0);
             }
+        }
+        private Vector2? GetCursorPos()
+        {
+            var collider = this.CursorCollider;
+            if (collider == null)
+            {
+                return null;
+            }
+
+            var ray = new Ray(Camera.main.ScreenToWorldPoint(new Vector3(0.5f, 0.5f, 0.0f)), Camera.main.transform.forward);
+            if (!collider.Raycast(ray, out var hitInfo, this.CursorInteractDistance))
+            {
+                return null;
+            }
+
+            var screenPlane = new Plane(this.transform.forward, this.transform.position);
+            var intersectionPoint = screenPlane.ClosestPointOnPlane(hitInfo.point);
+            // Transform the hit point to the local space of the screen object
+            var localHitPoint = this.transform.InverseTransformPoint(intersectionPoint);
+
+            var colliderBounds = collider.bounds;
+            // Apply the transformation of the collider to the intersection point to get the local coordinates.
+            var localBounds = new Bounds(this.transform.InverseTransformPoint(colliderBounds.center),
+                                         this.transform.InverseTransformVector(colliderBounds.size));
+
+
+            var cursorPos = new Vector2(
+                (localHitPoint.x - localBounds.min.x) / (localBounds.max.x - localBounds.min.x),
+                1 - (localHitPoint.y - localBounds.min.y) / (localBounds.max.y - localBounds.min.y)
+            );
+
+            // Not sure why this is an issue or what the math behind this is, but we
+            // have a flipped axis on certain rotations
+            // Yes, this happens on two different axes.  Its baffling.
+            var eulerAngles = this.transform.rotation.eulerAngles;
+            if (eulerAngles.y == 0 || eulerAngles.y == 270)
+            {
+                cursorPos.x = 1 - cursorPos.x;
+            }
+
+            // Things get even weirder when rotated about the x or z axes...
+            // Not bothering with that for now.
+
+            return cursorPos;
         }
     }
 }
