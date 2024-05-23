@@ -7,10 +7,13 @@ namespace StationeersWebDisplay
 {
     public class WebDisplayBehavior : MonoBehaviour
     {
-        private static readonly Texture2D DisabledTexture = new Texture2D(1, 1, TextureFormat.BGRA32, false);
 
         [NonSerialized]
         private Texture2D _browserTexture;
+
+        [NonSerialized]
+        private Texture2D _disabledTexture;
+
 
         [NonSerialized]
         private Material _renderMaterial;
@@ -76,11 +79,6 @@ namespace StationeersWebDisplay
             }
         }
 
-        static WebDisplayBehavior()
-        {
-            DisabledTexture.SetPixel(0, 0, UnityEngine.Color.black);
-        }
-
         public void Enable()
         {
             if (this._browserClient != null)
@@ -109,20 +107,27 @@ namespace StationeersWebDisplay
             this._browserClient.Shutdown();
             this._browserClient = null;
 
-            this._renderMaterial.SetTexture("_MainTex", DisabledTexture);
+            this._renderMaterial.SetTexture("_MainTex", _disabledTexture);
 
             // This is taking a lot of effort to turn off without getting a white screen...
             this._renderMaterial.DisableKeyword("_EMISSION");
-            this._renderMaterial.SetTexture("_EmissionMap", DisabledTexture);
+            this._renderMaterial.SetTexture("_EmissionMap", _disabledTexture);
             this._renderMaterial.SetColor("_EmissionColor", UnityEngine.Color.black);
         }
 
         void Awake()
         {
-            this._url = this.InitialUrl;
+            if (!string.IsNullOrEmpty(this.InitialUrl))
+            {
+                this._url = this.InitialUrl;
+            }
+
             this._enabled = this.StartEnabled;
 
             this._browserTexture = new Texture2D(this.Resolution.Width, this.Resolution.Height, TextureFormat.BGRA32, false);
+
+            this._disabledTexture = new Texture2D(1, 1, TextureFormat.BGRA32, false);
+            this._disabledTexture.SetPixel(0, 0, UnityEngine.Color.black);
 
             this._renderMaterial = new Material(Shader.Find("Standard"));
 
