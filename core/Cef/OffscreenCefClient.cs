@@ -13,6 +13,7 @@ namespace StationeersWebDisplay.Cef
         private readonly DownloadHandler _downloadHandler = new();
         private readonly LifeSpanHandler _lifespanHandler;
         private readonly RenderHandler _renderHandler;
+        private readonly RequestHandler _requestHandler;
 
         private readonly object _pixelLock = new object();
         private byte[] _pixelBuffer;
@@ -27,6 +28,7 @@ namespace StationeersWebDisplay.Cef
             this._pixelBuffer = new byte[windowSize.Width * windowSize.Height * 4];
             this._lifespanHandler = new(this);
             this._renderHandler = new(windowSize.Width, windowSize.Height, this);
+            this._requestHandler = new();
         }
 
         private string _pendingUrl = null;
@@ -136,6 +138,11 @@ namespace StationeersWebDisplay.Cef
             return this._lifespanHandler;
         }
 
+        protected override CefRequestHandler GetRequestHandler()
+        {
+            return this._requestHandler;
+        }
+
         protected override CefRenderHandler GetRenderHandler()
         {
             return this._renderHandler;
@@ -144,10 +151,8 @@ namespace StationeersWebDisplay.Cef
         private void _TrySetHost(CefBrowserHost host)
         {
             this._host = host;
-            Logging.LogTrace("TrySetHost");
             if (this._pendingUrl != null)
             {
-                Logging.LogTrace("Host set with a pending url.  Re-navigating.");
                 this._host.GetBrowser().GetMainFrame().LoadUrl(this._pendingUrl);
                 this._pendingUrl = null;
             }
@@ -206,6 +211,57 @@ namespace StationeersWebDisplay.Cef
             }
             protected override bool OnBeforePopup(CefBrowser browser, CefFrame frame, string targetUrl, string targetFrameName, CefWindowOpenDisposition targetDisposition, bool userGesture, CefPopupFeatures popupFeatures, CefWindowInfo windowInfo, ref CefClient client, CefBrowserSettings settings, ref CefDictionaryValue extraInfo, ref bool noJavascriptAccess)
             {
+                return false;
+            }
+        }
+
+        internal class RequestHandler : CefRequestHandler
+        {
+            private readonly ResourceRequestHandler _resourceRequestHandler = new();
+            protected override CefResourceRequestHandler GetResourceRequestHandler(CefBrowser browser, CefFrame frame, CefRequest request, bool isNavigation, bool isDownload, string requestInitiator, ref bool disableDefaultHandling)
+            {
+                return this._resourceRequestHandler;
+            }
+        }
+
+        internal class ResourceRequestHandler : CefResourceRequestHandler
+        {
+            private readonly CookieAccessFilter _cookieAccessFilter = new();
+
+            protected override CefCookieAccessFilter GetCookieAccessFilter(CefBrowser browser, CefFrame frame, CefRequest request)
+            {
+                return this._cookieAccessFilter;
+            }
+
+            protected override void OnProtocolExecution(CefBrowser browser, CefFrame frame, CefRequest request, ref bool allowOSExecution)
+            {
+                // Definitely do not let websites trigger OS level behaviors.
+                allowOSExecution = false;
+            }
+
+            protected override CefReturnValue OnBeforeResourceLoad(CefBrowser browser, CefFrame frame, CefRequest request, CefRequestCallback callback)
+            {
+                // TODO: Make this configurable from other mods.
+                if (!request.Url.StartsWith("http://localhost:8080/") && !request.Url.StartsWith("http://localhost:8081/"))
+                {
+                    return CefReturnValue.Cancel;
+                }
+
+                return CefReturnValue.Continue;
+            }
+        }
+
+        internal class CookieAccessFilter : CefCookieAccessFilter
+        {
+            protected override bool CanSaveCookie(CefBrowser browser, CefFrame frame, CefRequest request, CefResponse response, CefCookie cookie)
+            {
+                // Defaulting to overly strict until I can consider security.
+                return false;
+            }
+
+            protected override bool CanSendCookie(CefBrowser browser, CefFrame frame, CefRequest request, CefCookie cookie)
+            {
+                // Defaulting to overly strict until I can consider security.
                 return false;
             }
         }

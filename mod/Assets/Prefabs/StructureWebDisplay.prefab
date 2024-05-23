@@ -614,7 +614,7 @@ MonoBehaviour:
   DualRegister: 0
   requiresFrame: 0
   HasDataConnection: 1
-  UsedPower: 200
+  UsedPower: 125
   AttachedCables: []
   _infoScreen: {fileID: 0}
 --- !u!114 &6534944481909055201
