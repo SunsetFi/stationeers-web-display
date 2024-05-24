@@ -12,7 +12,7 @@ namespace StationeersWebDisplay
 {
 	public class StructureWebDisplay : SmallDevice
 	{
-		private static string RootUrl = "http://localhost:8080/#";
+		private static string RootUrl = "http://localhost:8081/station-hmi/#";
 		public override void Awake()
 		{
 			base.Awake();

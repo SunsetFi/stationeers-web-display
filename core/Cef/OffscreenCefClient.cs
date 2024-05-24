@@ -216,7 +216,7 @@ namespace StationeersWebDisplay.Cef
             protected override CefReturnValue OnBeforeResourceLoad(CefBrowser browser, CefFrame frame, CefRequest request, CefRequestCallback callback)
             {
                 // TODO: Make this configurable from other mods.
-                if (!request.Url.StartsWith("http://localhost:8080/") && !request.Url.StartsWith("http://localhost:8081/"))
+                if (!request.Url.StartsWith("http://localhost:8081/"))
                 {
                     return CefReturnValue.Cancel;
                 }
