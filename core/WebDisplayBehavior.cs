@@ -1,5 +1,6 @@
 ﻿using StationeersWebDisplay.Cef;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using UnityEngine;
 
@@ -19,7 +20,7 @@ namespace StationeersWebDisplay
         private Material _renderMaterial;
 
         [NonSerialized]
-        private OffscreenCefClient _browserClient;
+        private StationeersCefClient _browserClient;
 
         [NonSerialized]
         private bool _mouseDown = false;
@@ -63,6 +64,16 @@ namespace StationeersWebDisplay
         private string _url = "about:blank";
         public string InitialUrl = "about:blank";
 
+        /// <summary>
+        /// Allowed URLs for the browser to navigate to.
+        /// If this list is updated, the behavior must be disabled then re-enabled to take effect.
+        /// <para>
+        /// These values must be valid URLs.  Their paths can contain a single asterisk to match any value for that path segment, or a double
+        /// asterisk at the very end to match any sub-path.
+        /// Hostnames and ports cannot contain asterisks and must be exact.
+        /// </summary>
+        public List<string> AllowedUrls = new List<string>();
+
         public string Url
         {
             get
@@ -86,8 +97,21 @@ namespace StationeersWebDisplay
                 return;
             }
 
+            var allowedUris = new HashSet<Uri>();
+            foreach (var url in this.AllowedUrls)
+            {
+                if (Uri.TryCreate(url, UriKind.Absolute, out var uri))
+                {
+                    allowedUris.Add(uri);
+                }
+                else
+                {
+                    Logging.LogError($"Invalid URL in AllowedUrls: {url}");
+                }
+            }
+
             this._enabled = true;
-            this._browserClient = CefHost.CreateClient(this._url, this.Resolution);
+            this._browserClient = StationeersCefHost.CreateClient(this._url, this.Resolution, allowedUris);
 
             this._renderMaterial.SetTexture("_MainTex", this._browserTexture);
 

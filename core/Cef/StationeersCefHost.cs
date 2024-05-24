@@ -1,14 +1,13 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Threading.Tasks;
 using UnityEngine;
 using Xilium.CefGlue;
 
 namespace StationeersWebDisplay.Cef
 {
-    public static class CefHost
+    public static class StationeersCefHost
     {
         private static bool initialized = false;
         public static void Initialize()
@@ -19,23 +18,21 @@ namespace StationeersWebDisplay.Cef
             }
             initialized = true;
 
-            Logging.LogTrace($"Initializing CEF ");
-
             try
             {
-                Logging.LogTrace("Loading CEF");
+                Logging.LogTrace("Loading CEF assemblies");
                 CefRuntime.Load(StationeersWebDisplayPlugin.AssemblyDirectory);
-                Logging.LogTrace("CEF loaded");
 
                 var cefArgs = new CefMainArgs(new string[] { "mute-audio" });
 
-                var cefApp = new OffscreenCefApp();
+                var cefApp = new StationeersCefApp();
 
                 // This is where the code path diverges for child processes.
                 if (CefRuntime.ExecuteProcess(cefArgs, cefApp, IntPtr.Zero) != -1)
-                    Logging.LogError("Could not start the CEF secondary process.");
-
-                Logging.LogTrace("Executed CEF process");
+                {
+                    Logging.LogError("Could not start the CEF worker process.");
+                    return;
+                }
 
                 var cefSettings = new CefSettings
                 {
@@ -47,13 +44,13 @@ namespace StationeersWebDisplay.Cef
                     NoSandbox = true,
                 };
 
+                Logging.LogTrace("Initializing CEF runtime");
                 CefRuntime.Initialize(cefArgs, cefSettings, cefApp, IntPtr.Zero);
-                Logging.LogTrace("CEF runtime initialized");
 
+                Logging.LogTrace("Starting CEF message pump");
                 var pump = new GameObject("CefMessagePump");
                 pump.transform.parent = StationeersWebDisplayPlugin.Instance.gameObject.transform;
                 pump.AddComponent<CefMessagePump>();
-                Logging.LogTrace("CEF Message pump started");
             }
             catch (Exception ex)
             {
@@ -61,29 +58,28 @@ namespace StationeersWebDisplay.Cef
             }
         }
 
-        public static OffscreenCefClient CreateClient(string url, Size windowSize)
+        public static StationeersCefClient CreateClient(string url, Size windowSize, ICollection<Uri> allowedUris)
         {
             if (!initialized)
             {
-                throw new Exception("CefHost is not initialized.");
+                throw new Exception("StationeersCefHost is not initialized.");
             }
 
             var cefWindowInfo = CefWindowInfo.Create();
             cefWindowInfo.SetAsWindowless(IntPtr.Zero, false);
 
-            CefBrowserSettings cefBrowserSettings = new CefBrowserSettings()
+            var cefBrowserSettings = new CefBrowserSettings()
             {
                 BackgroundColor = new CefColor(0, 0, 0, 255),
                 JavaScript = CefState.Enabled,
                 JavaScriptAccessClipboard = CefState.Disabled,
                 JavaScriptCloseWindows = CefState.Disabled,
                 JavaScriptDomPaste = CefState.Disabled,
-                FileAccessFromFileUrls = CefState.Disabled,
                 Databases = CefState.Disabled,
                 LocalStorage = CefState.Disabled
             };
 
-            var cefClient = new OffscreenCefClient(windowSize);
+            var cefClient = new StationeersCefClient(windowSize, allowedUris);
             CefBrowserHost.CreateBrowser(cefWindowInfo, cefClient, cefBrowserSettings, url);
 
             return cefClient;
@@ -99,7 +95,7 @@ namespace StationeersWebDisplay.Cef
                 }
                 catch (Exception ex)
                 {
-                    Logging.LogError($"Failed to DoMessageLoopWork: {ex.GetType().FullName} {ex.Message} {ex.StackTrace}");
+                    Logging.LogError($"CEF failed to DoMessageLoopWork: {ex.GetType().FullName} {ex.Message} {ex.StackTrace}");
                 }
             }
         }

@@ -2,7 +2,7 @@
 
 namespace StationeersWebDisplay.Cef
 {
-    internal class OffscreenCefApp : CefApp
+    internal class StationeersCefApp : CefApp
     {
     }
 }

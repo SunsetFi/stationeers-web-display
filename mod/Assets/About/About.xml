@@ -1,20 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ModMetadata xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <Name>ExampleMod [StationeersMods]</Name>
-  <Author>Example</Author>
-  <Version>0.2.3773.18265.1</Version>
-  <Description>[h1]ExampleMod[/h1]
-[b]WARNING:[/b] This is a StationeersMods Plugin Mod. It requires Bepinex to be installed with the StationeersMods plugin.
-See: https://github.com/jixxed/StationeersMods
+  <Name>WebDisplayCore [StationeersMods]</Name>
+  <Author>SunsetFi and WIKUS</Author>
+  <Version>0.0.1</Version>
+  <Description>[h1]StationHMI[/h1]
+[b]WARNING:[/b] This mod has several dependencies beyond what it includes:
+- StationeersMods: https://github.com/jixxed/StationeersMods
+- StationeersWebDisplayCore: https://github.com/SunsetFi/stationeers-web-display
 
-Description for ExampleMod
+Missing any of these mods will cause this mod to not work correctly.
+
+This is a mod that adds support for creating terminals and screens in-game that can render web pages and other web content.
+On its own, it provides no constructable items, but it does provide the core functionality for other mods to build on.
+
+Mods that use this core:
+- StationHMI: HMI status and control screens for logic devices - https://github.com/SunsetFi/stationeers-web-hmi
+
   </Description>
   <InGameDescription>
-<![CDATA[<size="30"><color=#ffa500> ExampleMod </color></size>
-<b>WARNING:</b> <color=#ff0000>This is a StationeersMods Plugin Mod. It requires Bepinex to be installed with the StationeersMods plugin.</color>
-See: https://github.com/jixxed/StationeersMods
+<![CDATA[<size="30"><color=#ffa500> WebDisplayCore </color></size>
+<b>WARNING:</b> <color=#ff0000>This mod has several dependencies beyond what it includes:
+- StationeersMods: https://github.com/jixxed/StationeersMods
+- StationeersWebDisplayCore: https://github.com/SunsetFi/stationeers-web-display
+Missing any of these mods will cause this mod to not work correctly.</color>
 
-Description for ExampleMod
+This is a mod that adds support for creating terminals and screens in-game that can render web pages and other web content.
+On its own, it provides no constructable items, but it does provide the core functionality for other mods to build on.
 ]]>
   </InGameDescription>
   <Tags />

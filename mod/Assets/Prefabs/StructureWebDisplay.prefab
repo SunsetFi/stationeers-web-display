@@ -634,3 +634,7 @@ MonoBehaviour:
   CursorInteractDistance: 2
   StartEnabled: 0
   InitialUrl: 
+  AllowedUrls:
+  - http://localhost:8081/station-hmi
+  - http://localhost:8081/station-hmi/**
+  - http://localhost:8081/api/**

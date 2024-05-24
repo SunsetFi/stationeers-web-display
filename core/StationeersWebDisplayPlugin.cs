@@ -1,7 +1,8 @@
 
+using System;
+using System.Collections.Generic;
 using System.IO;
 using BepInEx;
-using HarmonyLib;
 using StationeersWebDisplay.Cef;
 
 namespace StationeersWebDisplay
@@ -9,7 +10,9 @@ namespace StationeersWebDisplay
     [BepInPlugin("dev.sunsetfi.stationeers.webdisplay", "Chromium Web Renderer API for Stationeers", "1.0.0.0")]
     public class StationeersWebDisplayPlugin : BaseUnityPlugin
     {
-        public static StationeersWebDisplayPlugin Instance;
+        public static StationeersWebDisplayPlugin Instance { get; private set; }
+
+        private static HashSet<Uri> AllowedUrlsList { get; } = new();
 
         public static string AssemblyDirectory
         {
@@ -21,8 +24,17 @@ namespace StationeersWebDisplay
             }
         }
 
+        public static void AddAllowedUri(Uri url)
+        {
+            AllowedUrlsList.Add(url);
+        }
+
+
+
         void Awake()
         {
+            Instance = this;
+
             // Test code for diagnosing assembly load failures.
             // AppDomain.CurrentDomain.AssemblyResolve += (_, e) =>
             // {
@@ -30,8 +42,7 @@ namespace StationeersWebDisplay
             //     throw new Exception("Last ditch assembly resolve failed.");
             // };
 
-            StationeersWebDisplayPlugin.Instance = this;
-            CefHost.Initialize();
+            StationeersCefHost.Initialize();
         }
     }
 }

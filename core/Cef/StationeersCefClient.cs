@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Security;
@@ -7,8 +8,10 @@ using Xilium.CefGlue;
 
 namespace StationeersWebDisplay.Cef
 {
-    public class OffscreenCefClient : CefClient
+    public class StationeersCefClient : CefClient
     {
+        private readonly ICollection<Uri> _allowedUrls;
+
         private readonly DialogHandler _dialogHandler = new();
         private readonly DownloadHandler _downloadHandler = new();
         private readonly LifeSpanHandler _lifespanHandler;
@@ -23,12 +26,14 @@ namespace StationeersWebDisplay.Cef
 
         private Vector2? _lastMousePos = null;
 
-        public OffscreenCefClient(Size windowSize)
+        public StationeersCefClient(Size windowSize, ICollection<Uri> allowedUrls)
         {
+            this._allowedUrls = allowedUrls;
+
             this._pixelBuffer = new byte[windowSize.Width * windowSize.Height * 4];
             this._lifespanHandler = new(this);
             this._renderHandler = new(windowSize.Width, windowSize.Height, this);
-            this._requestHandler = new();
+            this._requestHandler = new(this);
         }
 
         private string _pendingUrl = null;
@@ -171,8 +176,8 @@ namespace StationeersWebDisplay.Cef
 
         private class LifeSpanHandler : CefLifeSpanHandler
         {
-            private readonly OffscreenCefClient client;
-            public LifeSpanHandler(OffscreenCefClient client)
+            private readonly StationeersCefClient client;
+            public LifeSpanHandler(StationeersCefClient client)
             {
                 this.client = client;
             }
@@ -191,7 +196,13 @@ namespace StationeersWebDisplay.Cef
 
         internal class RequestHandler : CefRequestHandler
         {
-            private readonly ResourceRequestHandler _resourceRequestHandler = new();
+            private readonly ResourceRequestHandler _resourceRequestHandler;
+
+            public RequestHandler(StationeersCefClient client)
+            {
+                this._resourceRequestHandler = new(client);
+            }
+
             protected override CefResourceRequestHandler GetResourceRequestHandler(CefBrowser browser, CefFrame frame, CefRequest request, bool isNavigation, bool isDownload, string requestInitiator, ref bool disableDefaultHandling)
             {
                 return this._resourceRequestHandler;
@@ -200,7 +211,13 @@ namespace StationeersWebDisplay.Cef
 
         internal class ResourceRequestHandler : CefResourceRequestHandler
         {
+            private readonly StationeersCefClient _client;
             private readonly CookieAccessFilter _cookieAccessFilter = new();
+
+            public ResourceRequestHandler(StationeersCefClient client)
+            {
+                this._client = client;
+            }
 
             protected override CefCookieAccessFilter GetCookieAccessFilter(CefBrowser browser, CefFrame frame, CefRequest request)
             {
@@ -215,13 +232,62 @@ namespace StationeersWebDisplay.Cef
 
             protected override CefReturnValue OnBeforeResourceLoad(CefBrowser browser, CefFrame frame, CefRequest request, CefRequestCallback callback)
             {
-                // TODO: Make this configurable from other mods.
-                if (!request.Url.StartsWith("http://localhost:8081/"))
+                if (!Uri.TryCreate(request.Url, UriKind.Absolute, out var uri))
                 {
                     return CefReturnValue.Cancel;
                 }
 
+                if (!IsUriAllowed(uri))
+                {
+                    Logging.LogError($"Blocked request to \"{uri}\" as it was not in the allow list.");
+                    return CefReturnValue.Cancel;
+                }
+
                 return CefReturnValue.Continue;
+            }
+
+            private bool IsUriAllowed(Uri uri)
+            {
+                foreach (var allowUri in this._client._allowedUrls)
+                {
+                    if (uri.Scheme != allowUri.Scheme || uri.Host != allowUri.Host || uri.Port != allowUri.Port)
+                    {
+                        continue;
+                    }
+
+                    if (IsPathMatch(uri.AbsolutePath, allowUri.AbsolutePath))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            private static bool IsPathMatch(string path, string allowPath)
+            {
+                var pathSegments = path.Trim('/').Split('/');
+                var allowPathSegments = allowPath.Trim('/').Split('/');
+
+                for (int i = 0; i < allowPathSegments.Length; i++)
+                {
+                    if (i >= pathSegments.Length)
+                    {
+                        return false;
+                    }
+
+                    if (allowPathSegments[i] == "**")
+                    {
+                        return true; // ** matches everything beyond this point
+                    }
+
+                    if (allowPathSegments[i] != "*" && allowPathSegments[i] != pathSegments[i])
+                    {
+                        return false;
+                    }
+                }
+
+                return pathSegments.Length == allowPathSegments.Length;
             }
         }
 
@@ -244,12 +310,12 @@ namespace StationeersWebDisplay.Cef
         {
             private readonly AccessibilityHandler _accessibilityHandler = new();
 
-            private readonly OffscreenCefClient client;
+            private readonly StationeersCefClient client;
 
             private readonly int _windowWidth;
             private readonly int _windowHeight;
 
-            public RenderHandler(int windowWidth, int windowHeight, OffscreenCefClient client)
+            public RenderHandler(int windowWidth, int windowHeight, StationeersCefClient client)
             {
                 this._windowWidth = windowWidth;
                 this._windowHeight = windowHeight;
